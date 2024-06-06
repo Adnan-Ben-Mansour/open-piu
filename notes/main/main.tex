@@ -1,0 +1,68 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{fancyhdr}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[nomath]{kpfonts}
+\usepackage{microtype}
+\usepackage{lmodern}
+\usepackage[top=2cm, bottom=2cm, left=2cm, right=2cm,headheight=15pt]{geometry}
+\usepackage{hyperref}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
+\newcommand{\Abs}[1]{\left\lVert #1 \right\rVert}
+
+\pagestyle{fancy}
+\fancyhf{} % on efface tout
+\renewcommand{\headrulewidth}{1pt} % trait horizontal sous l'en-tête
+\fancyhead[L]{\textbf{Adnan BEN MANSOUR $\nabla$ Open-PIU}} % en-tête à gauche
+\fancyhead[C]{Notes} % en-tête au centre
+\fancyhead[R]{\today} % en-tête à droite
+
+\setlength{\parindent}{0pt} % pas d'indentation des paragraphes
+
+\begin{document}
+
+\section{Introduction}
+\subsection{Charts}
+Our goal is to achieve automatic chart generation for the rythm game Pump It Up. We have at our disposal a dataset which contains all the charts from the official game as SSC files (Simfiles). Each chart contains multiple notes (taps and holds) on different time, taps are punctual notes and holds have a begining and an end. 
+
+We represent them by $N \times 20$ arrays where the $10$ first dimensions are used for taps and the last $10$ ones are used for holds: they indicate that the corresponding arrow should be pressed. This is a simplification, we don't handle change of BPM, charts with too many notes pressed at once, and any other complicated stuff. The same chart can also be represented as a list $l \in [0..L-1]^N$ where $L$ denotes the number of combination of notes when it will be useful. Here we have $L \simeq 3'000$, and therefore $L^2 \simeq 9'000'000$. 
+
+\subsection{Goal}
+Given a mini-chart $x \in \{0, 1\}^{n \times 20}$ we want to make a full chart $\hat{x} \in \{0, 1 \}^{N \times 20}$ such that $\hat{x}[:n] = x$ and $\hat{x}$ seems like any other chart. It is difficult to define it properly but we will refine what we want later. 
+
+\subsection{Sub-tasks}
+\subsubsection{Markov's chain}
+It is not a Markov's chain because there is a heavy time dependance, but we will tackle this issue. However, we can still define $P \in [0,1]^L$ and $T \in [0,1]^{L \times L}$ the matrices that give the probability for each combination and couple of combinations. Right after a tap, or just after the begining of a hold, we know exactly which combination will be produced by the chart, and generating it will lead to infinite loops that we would like to avoid. 
+
+\subsubsection{Tempo detector}
+That's why first we are going to see if we could determine how many arrows will be pressed at each timestep, using a set $S = [0..4]^2$ to represent the number of taps and holds at a given time. We can even go further and reduce $S$ into $S'$ the couples with a sum at most equal to $4$, and $\abs{S'} = 5+4+3+2+1 = 15$.
+
+How do we go from $(i,j) \in S'$ into a single class $k \in [0..14]$ ? $k(i,j) = j + 5i - \frac{i(i-1)}{2}$. 
+
+
+For the tempo detector we fully transform our chart into a vector of elements of $S'$ and we generate the next elements with auto-regression using an LSTM, we read $n=56$ timesteps to generate $k=8$ new elements at a time. 
+
+\subsubsection{Next notes}
+This time we want to generate the notes, but we will provide the expected tempo to the model, so we're building an other LSTM that takes notes as entry (reduced to a specific dimension), and number of steps for desired generation, we will pad with extra information if needed (level of difficulty, type of patterns). 
+
+\subsubsection{Complex stuff}
+We would also like to take into account level of the song, limit generation to single charts, specify the kind of patterns we want to see the most, etc...
+
+\newpage
+\section{Diversity}
+\subsection{Problem}
+We have two main problems with this system, now that we fixed everything we have repetitive patterns or random ones, based on the temperature. When we generate $k$ steps we generate them simultaneously so the last ones are randomly generated independently from the first steps. Maybe $n$ is too big or too small aswell ? I expected LSTMs to fix this appropriately by fixing the right number of steps to look at. 
+
+
+	
+\end{document}
