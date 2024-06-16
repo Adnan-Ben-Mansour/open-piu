@@ -26,14 +26,16 @@ class TempoDataset(data.Dataset):
         for i, elem in tqdm.tqdm(self.datacsv.iterrows(), total=len(self.datacsv)):
             self.files.append(folder+elem["data"]+".npy")
             l = elem["level"]
+            sd = elem["single"]
+            l = l + 30*(1-int(sd))
 
-            if l < 16: # LEVEL
+            if l < 60: # LEVEL
                 data = np.load(self.files[-1]) # (L,)
                 realdata = self.compactor.convert(data) # (L, 20)
                 
                 
                 for j in range(elem["length"]-self.nk):
-                    if False or (np.sum(realdata[j:j+self.nk, :]) != 0): # only TAP notes
+                    if True or (np.sum(realdata[j:j+self.nk, 10:]) == 0): # only TAP notes
                         self.idxs.append((i, j, 0, l)) # normal
                         self.idxs.append((i, j, 1, l)) # reversed
 

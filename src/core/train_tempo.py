@@ -33,7 +33,7 @@ def train_tempo(model, dataset, **settings):
             fx = F.one_hot(x, num_classes=model.d).to(dtype=torch.float32)
 
             m = torch.ones((x.shape[0], x.shape[1]+y.shape[1]))
-            m[:, :x.shape[1]] = 0.1 # p
+            m[:, :x.shape[1]] = 0.01 # p
             m = torch.bernoulli(m).to(device=device, dtype=torch.float32)
 
             y_hat = model(fx, l, m)

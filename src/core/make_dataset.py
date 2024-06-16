@@ -25,13 +25,15 @@ def make_dataset(folder="./data/dataset/"):
     
     filenames = []
     
+    tot_charts = 0
     for sscfile in tqdm.tqdm(glob.glob("./data/PIU-Simfiles-main/*/*/*.ssc")):
         try:
             for idx in range(nb_charts(sscfile)):
+                tot_charts += 1
                 try:
                     sfile = read_ssc(sscfile, idx)
-                    if len(sfile.tempo) != 1:
-                        raise Exception(f"multiple BPM in the same file {sscfile}")
+                    if len(sfile.tempo) == 0:
+                        raise Exception(f"No BPM in the file {sscfile}")
                     else:
                         filename = f"{sfile.title}-{('S' if (sfile.single) else 'D') + str(sfile.level)}"
                         filenames.append(filename)
@@ -56,7 +58,7 @@ def make_dataset(folder="./data/dataset/"):
             pass # print(f"Impossible d'ouvrir le simfile: {sscfile}")
     
     for data in datacsv:
-        print(data, len(datacsv[data]))
+        print(data, len(datacsv[data]), '/', tot_charts)
     
     pd.DataFrame(datacsv).to_csv(f"{folder}data.csv")
     compactor.save(f"{folder}compactor.json")

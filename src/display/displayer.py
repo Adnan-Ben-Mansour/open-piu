@@ -37,7 +37,7 @@ class Displayer:
     def __init__(self):
         self.dim = (1200, 900)
         self.screen = pygame.display.set_mode(self.dim, pygame.RESIZABLE) # | pygame.SCALED)
-        self.skin = "./data/HD/"
+        self.skin = "./data/skins/XX/"
 
         pygame.display.set_caption("OpenPIU")
         pygame.display.set_icon(pygame.image.load("./data/icon.png"))
@@ -109,8 +109,8 @@ class Displayer:
             if self.running_chart:
                 to_remove = []
                 for note in self.read_notes:
-                    column = note[1]
-                    pos = note[2]*(16/167)
+                    column = note[2]
+                    pos = note[1]*(16/80)
                     dt = t - pos
 
                     if note[0] == 1: # TAPNOTE
